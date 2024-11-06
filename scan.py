@@ -42,7 +42,7 @@ LAST_STATION=0
 i = 0
 while i < 11:
     x_axis_label=str(band_to_scan[1]+(x_axis_increment*i))
-    x_axis_label='.'.join(x_axis_label[i:i+3] for i in range(0, len(x_axis_label), 3))
+    #x_axis_label='.'.join(x_axis_label[i:i+3] for i in range(0, len(x_axis_label), 3))
     x_pos=(scan_area_width/10)*i
     text_surface = lcd_font.render(x_axis_label[:7],False, (0,255,0))
     screen.blit(text_surface,(x_pos,scan_area_height-35))
@@ -66,9 +66,6 @@ def find_max_min(arr, n):
     arr.append(10)
     max = arr[0]
     min = arr[0]
-   # Traverse array elements from second
-   # and compare every element with
-   # current max
     for i in range(1, n):
         if arr[i] > max:
             max = arr[i]
@@ -87,14 +84,13 @@ def draw_graph(rgb_value, x_pos, y_pos,frequency):
         global LAST_STATION
         LAST_STATION=frequency
         text_surface = str(frequency)[:7]
-        text_surface='.'.join(text_surface[i:i+3] for i in range(0, len(text_surface), 3))
+        #text_surface='.'.join(text_surface[i:i+3] for i in range(0, len(text_surface), 3))
         text_surface="Current Frequency: " + text_surface
         text_surface=lcd_font.render(text_surface,False,(0,255,0))
         pygame.draw.rect(screen, (0,0,0), pygame.Rect(0,285, 1000, 15))
         screen.blit(text_surface,(0,285))
     pygame.display.flip()
 def draw_sine_wave(amplitude):
-#    screen.fill((0,0,0))
     pygame.draw.rect(screen, (0,0,0), pygame.Rect(0,300, 1000, 300))
     sine_font = pygame.font.SysFont('Tahoma', 25)           
     sine_font = sine_font.render("UP/DOWN ARROW TO TUNE", True, (0,255,0))
