@@ -7,8 +7,6 @@ import keyboard
 import time
 import sys
 global space_bar
-global screen
-global p
 p = pyaudio.PyAudio()
 #define frequency ranges of the bands
 fm=["FA",]
@@ -19,7 +17,7 @@ forty_meter=["FA00",7000000,7300000, 1000]
 eighty_meter=["FA00",3000000,4000000, 1000]
 two_meter=["FA",144000000,148000000,10000]
 seventy_centimeter=["FA",420000000,450000000,100000]
-band_to_scan=twenty_meter
+band_to_scan=eighty_meter
 y_pos=0
 sound_values = []
 CHUNK = 1024
@@ -27,7 +25,6 @@ FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
 SOUNDCARD_SELECT = 12
-
 screen_width = 1000
 screen_height = 600
 scan_area_width=screen_width
@@ -39,7 +36,6 @@ x_axis_increment=(band_to_scan[2]-band_to_scan[1])/10
 space_bar=True
 pygame.font.init()
 lcd_font = pygame.font.SysFont('Tahoma', 15)
-pygame.init()
 pygame.display.set_caption("test")
 screen = pygame.display.set_mode((screen_width, screen_height))
 LAST_STATION=0
@@ -51,7 +47,6 @@ while i < 11:
     text_surface = lcd_font.render(x_axis_label[:7],False, (0,255,0))
     screen.blit(text_surface,(x_pos,scan_area_height-35))
     i+=1
-
 stream = p.open(format=FORMAT,
                  channels=CHANNELS,
                  rate=RATE,
@@ -192,6 +187,7 @@ def main_loop():
         print("keyboard interrupt")
         pygame.quit()
 if __name__ == '__main__':
+    #pygame.init()
     info = p.get_host_api_info_by_index(0)
     numdevices = info.get('deviceCount')
     for i in range(0, numdevices):
@@ -204,6 +200,4 @@ if __name__ == '__main__':
             process.terminate()
             pygame.quit()
             break
-
-
 
