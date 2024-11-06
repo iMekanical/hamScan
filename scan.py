@@ -6,10 +6,8 @@ import serial
 import keyboard
 import time
 import sys
-global space_bar
-p = pyaudio.PyAudio()
-#define frequency ranges of the bands
-fm=["FA",]
+#define frequency ranges of the bands....not done
+fm=["FA",] #need to append a 0 for < 100mhz
 noaa=["FA",162545000,162557000,1000]
 ten_meter=["FA0",28000000,29700000,5000]
 twenty_meter=["FA0",14000000,14350000,1000]
@@ -17,49 +15,30 @@ forty_meter=["FA00",7000000,7300000, 1000]
 eighty_meter=["FA00",3000000,4000000, 1000]
 two_meter=["FA",144000000,148000000,10000]
 seventy_centimeter=["FA",420000000,450000000,100000]
-band_to_scan=eighty_meter
+band_to_scan=eighty_meter #add switch for user input
+#todo check which variables need to be global
+global space_bar
+space_bar=True
+LAST_STATION=0
+global p
+com_port_id = 0
+p = pyaudio.PyAudio()
 y_pos=0
 sound_values = []
-CHUNK = 1024
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 44100
-SOUNDCARD_SELECT = 12
 screen_width = 1000
 screen_height = 600
 scan_area_width=screen_width
 scan_area_height=screen_height-300
 sine_area_width=screen_width
 sine_area_height=500
-clock = pygame.time.Clock()
 x_axis_increment=(band_to_scan[2]-band_to_scan[1])/10
-space_bar=True
-pygame.font.init()
-lcd_font = pygame.font.SysFont('Tahoma', 15)
-pygame.display.set_caption("test")
-screen = pygame.display.set_mode((screen_width, screen_height))
-LAST_STATION=0
-i = 0
-while i < 11:
-    x_axis_label=str(band_to_scan[1]+(x_axis_increment*i))
-    #x_axis_label='.'.join(x_axis_label[i:i+3] for i in range(0, len(x_axis_label), 3))
-    x_pos=(scan_area_width/10)*i
-    text_surface = lcd_font.render(x_axis_label[:7],False, (0,255,0))
-    screen.blit(text_surface,(x_pos,scan_area_height-35))
-    i+=1
-stream = p.open(format=FORMAT,
-                 channels=CHANNELS,
-                 rate=RATE,
-                 input=True,
-                 input_device_index=SOUNDCARD_SELECT,
-                 frames_per_buffer=CHUNK)
 def get_microphone_input_level():
-    data = stream.read(CHUNK)
+    data = stream.read(1024)
     rms = 0
     for i in range(0, len(data), 2):
         sample = int.from_bytes(data[i:i+2], byteorder='little', signed=True)
         rms += sample * sample
-    rms = math.sqrt(rms / (CHUNK / 2))
+    rms = math.sqrt(rms / (512))
     return rms
 def find_max_min(arr, n):
     arr.append(1850)
@@ -96,7 +75,6 @@ def draw_sine_wave(amplitude):
     sine_font = sine_font.render("UP/DOWN ARROW TO TUNE", True, (0,255,0))
     text_rect = sine_font.get_rect(center=(screen_width/2, screen_height-500/2))
     screen.blit(sine_font, text_rect)
-
     points = []
     if amplitude > 10:
         for x in range(screen_width):
@@ -107,7 +85,7 @@ def draw_sine_wave(amplitude):
         points.append((sine_area_width, (sine_area_height)))
     pygame.draw.lines(screen, (255,255,255), False, points, 2)
     pygame.display.flip()
-def main_loop():
+def main_loop(com_port_id):
     y_pos=0
     f=band_to_scan[1]
     running=True
@@ -115,7 +93,7 @@ def main_loop():
     global LAST_STATION
     amplitude = 100
     try:
-        ser = serial.Serial("COM3", 38400,timeout=1)
+        ser = serial.Serial(com_port_id, 38400,timeout=1)
         while running:
             pygame.draw.rect(screen, (0,255,0), pygame.Rect(0,305, 1000, 300))
             pause_font = pygame.font.SysFont('Tahoma', 50)           
@@ -183,17 +161,33 @@ def main_loop():
         print("keyboard interrupt")
         pygame.quit()
 if __name__ == '__main__':
-    #pygame.init()
     info = p.get_host_api_info_by_index(0)
     numdevices = info.get('deviceCount')
     for i in range(0, numdevices):
         if (p.get_device_info_by_host_api_device_index(0, i).get('maxInputChannels')) > 0:
             print("Input Device id ", i, " - ", p.get_device_info_by_host_api_device_index(0, i).get('name'))
-    process = Process(target=main_loop)
+    sound_card_id=input("WHICH SOUNDCARD DO YOU WANT TO LISTEN TO? ")
+    sound_card_id=int(sound_card_id)
+    stream = p.open(format=pyaudio.paInt16, channels=1, rate=44100, input=True, input_device_index=sound_card_id, frames_per_buffer=1024)
+    pygame.font.init()
+    lcd_font = pygame.font.SysFont('Tahoma', 15)
+    pygame.display.set_caption("")
+    screen = pygame.display.set_mode((screen_width, screen_height))
+    clock = pygame.time.Clock()
+    i = 0
+    while i < 11:
+        x_axis_label=str(band_to_scan[1]+(x_axis_increment*i))
+        #x_axis_label='.'.join(x_axis_label[i:i+3] for i in range(0, len(x_axis_label), 3))
+        x_pos=(scan_area_width/10)*i
+        text_surface = lcd_font.render(x_axis_label[:7],False, (0,255,0))
+        screen.blit(text_surface,(x_pos,scan_area_height-35))
+        i+=1
+    com_port_id=input("WHICH COM PORT ex: 3? ")
+    com_port_id="COM"+str(com_port_id)
+    process = Process(target=main_loop(com_port_id))
     process.start()
     while process.is_alive():
         if keyboard.is_pressed('q'):
             process.terminate()
             pygame.quit()
             break
-
