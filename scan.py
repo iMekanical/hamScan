@@ -1,11 +1,10 @@
-from multiprocessing import Process
-import pygame
-import math
-import pyaudio
-import serial
-import keyboard
-import time
-import sys
+from multiprocessing import Process #built in module since 2.6
+import time #built in module
+import math #built in module
+import pygame #pip install pygame
+import pyaudio #pip install pyaudio
+import serial #pip install pyserial
+import keyboard #pip install keyboard
 #define frequency ranges of the bands....not done
 fm=["FA",] #need to append a 0 for < 100mhz
 noaa=["FA",162545000,162557000,1000]
@@ -15,9 +14,8 @@ forty_meter=["FA00",7000000,7300000, 1000]
 eighty_meter=["FA00",3000000,4000000, 1000]
 two_meter=["FA",144000000,148000000,10000]
 seventy_centimeter=["FA",420000000,450000000,100000]
-band_to_scan=eighty_meter #add switch for user input
-#todo check which variables need to be global
-global space_bar
+band_to_scan=eighty_meter #todo add switch for user input
+global space_bar #todo check which variables need to be global
 space_bar=True
 LAST_STATION=0
 global p
@@ -32,6 +30,7 @@ scan_area_height=screen_height-300
 sine_area_width=screen_width
 sine_area_height=500
 x_axis_increment=(band_to_scan[2]-band_to_scan[1])/10
+#todo rename functions
 def get_microphone_input_level():
     data = stream.read(1024)
     rms = 0
@@ -41,7 +40,7 @@ def get_microphone_input_level():
     rms = math.sqrt(rms / (512))
     return rms
 def find_max_min(arr, n):
-    arr.append(1850)
+    arr.append(1850) #todo check init values on different of sound cards
     arr.append(10)
     max = arr[0]
     min = arr[0]
@@ -51,19 +50,19 @@ def find_max_min(arr, n):
         if arr[i] < min:
             min = arr[i]
     return max, min
-def draw_graph(rgb_value, x_pos, y_pos,frequency):
+def draw_graph(rgb_value, x_pos, y_pos,frequency): #todo rename this function
     progress_color = (0,255,0)
     progress_x_pos=x_pos+3
     signal_color=(rgb_value,0,0)
     pygame.draw.rect(screen, (0,0,0), pygame.Rect(x_pos, y_pos, 10, 10))
     pygame.draw.rect(screen, (0,0,255), pygame.Rect(0, y_pos+1, 1000, 1))
     pygame.draw.rect(screen, signal_color, pygame.Rect(x_pos, y_pos, 6, 6))
-    #pygame.draw.rect(screen, progress_color, pygame.Rect(progress_x_pos, y_pos, 3, 3))
     if rgb_value > 100:
         global LAST_STATION
         LAST_STATION=frequency
         text_surface = str(frequency)[:7]
-        #text_surface='.'.join(text_surface[i:i+3] for i in range(0, len(text_surface), 3))
+        #to do add . appropriately for different bands
+        #text_surface='.'.join(text_surface[i:i+3] for i in range(0, len(text_surface), 3)) 
         text_surface="Current Frequency: " + text_surface
         text_surface=lcd_font.render(text_surface,False,(0,255,0))
         pygame.draw.rect(screen, (0,0,0), pygame.Rect(0,285, 1000, 15))
@@ -136,9 +135,7 @@ def main_loop(com_port_id):
                     frequency_normalize=int(((f-band_to_scan[1])/(band_to_scan[2]-band_to_scan[1]))*1000)
                     draw_graph(rgb_value,frequency_normalize,y_pos,f)
             else:
-                #print(LAST_STATION)
                 mic_input_level=get_microphone_input_level()
-                #print(mic_input_level)
                 amplitude_adjustment = (mic_input_level /99)-100
                 amplitude = max(10, amplitude_adjustment)
                 draw_sine_wave(amplitude)        
@@ -177,6 +174,7 @@ if __name__ == '__main__':
     i = 0
     while i < 11:
         x_axis_label=str(band_to_scan[1]+(x_axis_increment*i))
+        #todo add . in different places for bands
         #x_axis_label='.'.join(x_axis_label[i:i+3] for i in range(0, len(x_axis_label), 3))
         x_pos=(scan_area_width/10)*i
         text_surface = lcd_font.render(x_axis_label[:7],False, (0,255,0))
