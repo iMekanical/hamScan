@@ -6,7 +6,7 @@ import pyaudio #pip install pyaudio
 import serial #pip install pyserial
 import keyboard #pip install keyboard
 #define frequency ranges of the bands....not done
-fm=["FA",] #need to append a 0 for < 100mhz
+fm=["FA",100000000,108000000,10000] #need to append a 0 for < 100mhz
 noaa=["FA",162545000,162557000,1000]
 ten_meter=["FA0",28000000,29700000,5000]
 twenty_meter=["FA0",14000000,14350000,1000]
@@ -14,7 +14,7 @@ forty_meter=["FA00",7000000,7300000, 1000]
 eighty_meter=["FA00",3000000,4000000, 1000]
 two_meter=["FA",144000000,148000000,10000]
 seventy_centimeter=["FA",420000000,450000000,100000]
-band_to_scan=eighty_meter #todo add switch for user input
+band_to_scan=fm #todo add switch for user input
 global space_bar #todo check which variables need to be global
 space_bar=True
 LAST_STATION=0
@@ -53,10 +53,10 @@ def find_max_min(arr, n):
 def draw_graph(rgb_value, x_pos, y_pos,frequency): #todo rename this function
     progress_color = (0,255,0)
     progress_x_pos=x_pos+3
-    signal_color=(rgb_value,0,0)
+    signal_color=(rgb_value,rgb_value,rgb_value)
     pygame.draw.rect(screen, (0,0,0), pygame.Rect(x_pos, y_pos, 10, 10))
     pygame.draw.rect(screen, (0,0,255), pygame.Rect(0, y_pos+1, 1000, 1))
-    pygame.draw.rect(screen, signal_color, pygame.Rect(x_pos, y_pos, 6, 6))
+    pygame.draw.rect(screen, signal_color, pygame.Rect(x_pos, y_pos, 20, 20))
     if rgb_value > 100:
         global LAST_STATION
         LAST_STATION=frequency
@@ -138,7 +138,8 @@ def main_loop(com_port_id):
                 mic_input_level=get_microphone_input_level()
                 amplitude_adjustment = (mic_input_level /99)-100
                 amplitude = max(10, amplitude_adjustment)
-                draw_sine_wave(amplitude)        
+                draw_sine_wave(amplitude)
+                #todo add vertical frequency indicator while navigating through frequencies        
                 if keyboard.is_pressed("down arrow"):
                     LAST_STATION=LAST_STATION-band_to_scan[3]
                     fStr=str(LAST_STATION)
