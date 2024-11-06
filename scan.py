@@ -54,26 +54,22 @@ def draw_graph(rgb_value, x_pos, y_pos,frequency): #todo rename this function
     progress_color = (0,255,0)
     progress_x_pos=x_pos+3
     signal_color=(rgb_value,rgb_value,rgb_value)
-    pygame.draw.rect(screen, (0,0,0), pygame.Rect(x_pos, y_pos, 10, 10))
+    pygame.draw.rect(screen, (0,255,0), pygame.Rect(x_pos, y_pos, 10, 10))
     pygame.draw.rect(screen, (0,0,255), pygame.Rect(0, y_pos+1, 1000, 1))
-    pygame.draw.rect(screen, signal_color, pygame.Rect(x_pos, y_pos, 20, 20))
+    pygame.draw.rect(screen, signal_color, pygame.Rect(x_pos, y_pos, 3, 20))
     if rgb_value > 100:
         global LAST_STATION
         LAST_STATION=frequency
         text_surface = str(frequency)[:7]
         #to do add . appropriately for different bands
         #text_surface='.'.join(text_surface[i:i+3] for i in range(0, len(text_surface), 3)) 
-        text_surface="Current Frequency: " + text_surface
+        text_surface="Last Active Frequency: " + text_surface
         text_surface=lcd_font.render(text_surface,False,(0,255,0))
         pygame.draw.rect(screen, (0,0,0), pygame.Rect(0,285, 1000, 15))
         screen.blit(text_surface,(0,285))
     pygame.display.flip()
 def draw_sine_wave(amplitude):
     pygame.draw.rect(screen, (0,0,0), pygame.Rect(0,300, 1000, 300))
-    sine_font = pygame.font.SysFont('Tahoma', 25)           
-    sine_font = sine_font.render("UP/DOWN ARROW TO TUNE", True, (0,255,0))
-    text_rect = sine_font.get_rect(center=(screen_width/2, screen_height-500/2))
-    screen.blit(sine_font, text_rect)
     points = []
     if amplitude > 10:
         for x in range(screen_width):
@@ -136,7 +132,7 @@ def main_loop(com_port_id):
                     draw_graph(rgb_value,frequency_normalize,y_pos,f)
             else:
                 mic_input_level=get_microphone_input_level()
-                amplitude_adjustment = (mic_input_level /99)-100
+                amplitude_adjustment = (mic_input_level /99)
                 amplitude = max(10, amplitude_adjustment)
                 draw_sine_wave(amplitude)
                 #todo add vertical frequency indicator while navigating through frequencies        
